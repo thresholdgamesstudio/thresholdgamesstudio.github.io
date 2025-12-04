@@ -1,4 +1,4 @@
-name: Build Eleventy and Commit Docs
+name: Build Eleventy and Commit _site
 
 on:
   push:
@@ -24,11 +24,11 @@ jobs:
       - name: Build site
         run: npm run build
 
-      - name: Commit built docs
+      - name: Commit built _site
         uses: EndBug/add-and-commit@v9
         with:
           author_name: "github-actions[bot]"
           author_email: "github-actions[bot]@users.noreply.github.com"
           message: "chore: build site [skip ci]"
-          add: "docs"
+          add: "_site"
           push: true
