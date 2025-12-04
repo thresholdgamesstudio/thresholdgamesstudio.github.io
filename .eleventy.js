@@ -9,6 +9,9 @@ module.exports = function (eleventyConfig) {
       .sort((a, b) => b.data.date.localeCompare(a.data.date));
   });
 
+  // Add favicon to the site
+  eleventyConfig.addPassthroughCopy({ "src/img/favicon.png": "favicon.png" });
+
   return {
     dir: {
       input: "src",
