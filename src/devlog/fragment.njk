@@ -1,0 +1,14 @@
+---
+pagination:
+  data: collections.devlog
+  size: 1
+  alias: post
+permalink: "devlog/{{ post.fileSlug }}/fragment.html"
+layout: null
+---
+
+<div class="p-6">
+  <h3 class="font-['Cinzel'] text-xl text-[#c5a059] mb-4">{{ post.data.title }}</h3>
+  <div class="font-['Courier_Prime'] text-[#f4f4f4] leading-relaxed whitespace-pre-wrap text-sm md:text-base">{{ post.templateContent | safe }}</div>
+  <div class="mt-6 text-xs text-[#666]">Logged by: <span class="text-[#c5a059]">{{ post.data.author }}</span></div>
+</div>

@@ -1,0 +1,253 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Sherlock Holmes: The First Thread | Threshold Games</title>
+
+    <!-- Fonts -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Cinzel:wght@400;700&family=Courier+Prime:wght@400;700&display=swap" rel="stylesheet">
+
+    <!-- Tailwind CSS -->
+    <script src="https://cdn.tailwindcss.com"></script>
+
+    <style>
+        /* Custom Animations & Effects */
+        @keyframes fadeInUp {
+            from {
+                opacity: 0;
+                transform: translateY(20px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        .animate-fade-in-up {
+            animation: fadeInUp 0.8s ease-out forwards;
+        }
+
+        .animate-fade-in {
+            animation: fadeIn 1s ease-out forwards;
+        }
+
+        .animate-fade-in-delay {
+            animation: fadeIn 1s ease-out 0.5s forwards;
+            opacity: 0;
+        }
+
+        .animate-fade-in-delay-2 {
+            animation: fadeIn 1s ease-out 1s forwards;
+            opacity: 0;
+        }
+
+        @keyframes fadeIn {
+            from {
+                opacity: 0;
+            }
+            to {
+                opacity: 1;
+            }
+        }
+
+        /* The Flashlight Texture Layer */
+        .flashlight-layer {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            pointer-events: none;
+            z-index: 1;
+            background-image:
+                radial-gradient(#333 1px, transparent 1px),
+                radial-gradient(#222 1px, transparent 1px);
+            background-size: 20px 20px;
+            background-position: 0 0, 10px 10px;
+            mask-image: radial-gradient(circle 250px at var(--x, 50%) var(--y, 50%), black 0%, transparent 100%);
+            -webkit-mask-image: radial-gradient(circle 250px at var(--x, 50%) var(--y, 50%), black 0%, transparent 100%);
+            opacity: 0.15;
+        }
+
+        /* Scrollbar Styling */
+        ::-webkit-scrollbar {
+            width: 8px;
+        }
+
+        ::-webkit-scrollbar-track {
+            background: #0a0a0a;
+        }
+
+        ::-webkit-scrollbar-thumb {
+            background: #333;
+        }
+
+        ::-webkit-scrollbar-thumb:hover {
+            background: #c5a059;
+        }
+
+        body {
+            background-color: #0a0a0a;
+            color: #f4f4f4;
+        }
+    </style>
+</head>
+
+<body class="min-h-screen selection:bg-[#c5a059] selection:text-black overflow-x-hidden">
+    <div class="flashlight-layer" id="flash"></div>
+
+    <nav class="fixed top-0 w-full z-50 border-b border-[#333] bg-[#0a0a0a]/90 backdrop-blur-sm">
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+            <div class="flex items-center justify-between h-20">
+                <div class="flex-shrink-0 cursor-pointer group" onclick="location.href='/'">
+                    <div class="text-2xl font-['Cinzel'] text-[#f4f4f4] tracking-widest group-hover:text-[#c5a059] transition-colors">THRESHOLD</div>
+                    <div class="text-[10px] font-['Courier_Prime'] text-[#c5a059] tracking-[0.3em]">GAMES STUDIO</div>
+                </div>
+
+                <div class="hidden md:block">
+                    <div class="ml-10 flex items-baseline space-x-8">
+                        <a href="/" class="px-3 py-2 text-sm font-['Courier_Prime'] tracking-wider transition-all duration-300 text-[#f4f4f4] hover:text-[#c5a059] hover:opacity-80">LOBBY</a>
+                        <a href="/about/" class="px-3 py-2 text-sm font-['Courier_Prime'] tracking-wider transition-all duration-300 text-[#f4f4f4] hover:text-[#c5a059] hover:opacity-80">THE SPACE BETWEEN</a>
+                        <a href="/games/" class="px-3 py-2 text-sm font-['Courier_Prime'] tracking-wider transition-all duration-300 text-[#f4f4f4] hover:text-[#c5a059] hover:opacity-80">INVESTIGATIONS</a>
+                        <a href="/devlog/" class="px-3 py-2 text-sm font-['Courier_Prime'] tracking-wider transition-all duration-300 text-[#f4f4f4] hover:text-[#c5a059] hover:opacity-80">CASE FILES</a>
+                    </div>
+                </div>
+
+                <div class="-mr-2 flex md:hidden">
+                    <button id="menu-btn" class="inline-flex items-center justify-center p-2 rounded-md text-gray-400 hover:text-white hover:bg-gray-700 focus:outline-none">
+                        <svg id="menu-icon" xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="color: #c5a059;">
+                            <line x1="3" y1="12" x2="21" y2="12"></line>
+                            <line x1="3" y1="6" x2="21" y2="6"></line>
+                            <line x1="3" y1="18" x2="21" y2="18"></line>
+                        </svg>
+                    </button>
+                </div>
+            </div>
+        </div>
+
+        <!-- Mobile Menu -->
+        <div id="mobile-menu" class="hidden md:hidden bg-[#0a0a0a] border-b border-[#333]">
+            <div class="px-2 pt-2 pb-3 space-y-1 sm:px-3">
+                <a href="/" class="text-gray-300 hover:text-[#c5a059] block px-3 py-2 rounded-md text-base font-medium font-['Courier_Prime'] w-full text-left">LOBBY</a>
+                <a href="/about/" class="text-gray-300 hover:text-[#c5a059] block px-3 py-2 rounded-md text-base font-medium font-['Courier_Prime'] w-full text-left">THE SPACE BETWEEN</a>
+                <a href="/games/" class="text-gray-300 hover:text-[#c5a059] block px-3 py-2 rounded-md text-base font-medium font-['Courier_Prime'] w-full text-left">INVESTIGATIONS</a>
+                <a href="/devlog/" class="text-gray-300 hover:text-[#c5a059] block px-3 py-2 rounded-md text-base font-medium font-['Courier_Prime'] w-full text-left">CASE FILES</a>
+            </div>
+        </div>
+    </nav>
+
+    <main class="relative z-10">
+        
+<div class="min-h-screen pt-32 pb-20 px-4 md:px-20 max-w-7xl mx-auto">
+  <div class="relative mb-16 rounded-sm overflow-hidden border border-[#333]">
+    <div class="h-[50vh] bg-neutral-900 relative flex items-center justify-center overflow-hidden">
+      <div class="absolute inset-0 bg-gradient-to-t from-[#0a0a0a] to-transparent z-10"></div>
+      <div class="absolute inset-0 opacity-10" style="background-image: url('data:image/svg+xml,%3Csvg width=%2720%27 height=%2720%27 viewBox=%270 0 20 20%27 xmlns=%27http://www.w3.org/2000/svg%27%3E%3Cg fill=%27%23ffffff%27 fill-opacity=%271%27 fill-rule=%27evenodd%27%3E%3Ccircle cx=%273%27 cy=%273%27 r=%271%27/%3E%3C/g%3E%3C/svg%3E'); opacity: 0.1"></div>
+      <div class="z-20 text-center px-4">
+        <div class="font-['Cinzel'] text-5xl md:text-7xl text-[#f4f4f4] mb-2 drop-shadow-lg">SHERLOCK HOLMES</div>
+        <div class="font-['Courier_Prime'] text-xl md:text-3xl text-[#c5a059] tracking-[0.2em] bg-black/50 inline-block px-4 py-1">THE FIRST THREAD</div>
+      </div>
+    </div>
+  </div>
+
+  <div class="grid grid-cols-1 lg:grid-cols-3 gap-12">
+    <div class="lg:col-span-2">
+      <h2 class="text-2xl font-['Cinzel'] text-[#f4f4f4] mb-6">Before the Legend. There Was the Student.</h2>
+      <div class="font-['Courier_Prime'] text-[#ccc] space-y-4 mb-8 text-sm md:text-base">
+        <p>It is 1874. A professor lies dead behind a locked door. The police call it a suicide. You know better.</p>
+        <p>In this "Vertical Slice" standalone title, you will master the skills that will one day make you the world's greatest detective. Introduce yourself to the Threshold Deduction System.</p>
+      </div>
+
+      <div class="flex gap-4 mb-12 flex-wrap">
+        <a href="#" class="px-8 py-3 bg-[#c5a059] text-[#0a0a0a] font-['Cinzel'] font-bold tracking-widest text-sm md:text-base hover:bg-[#fff] transition-all duration-300">WISHLIST ON STEAM</a>
+        <a href="#" class="px-8 py-3 border border-[#c5a059] text-[#c5a059] font-['Cinzel'] font-bold tracking-widest text-sm md:text-base hover:bg-[#c5a059] hover:text-[#0a0a0a] transition-all duration-300">VIEW TRAILER</a>
+      </div>
+
+      <h3 class="text-xl font-['Cinzel'] text-[#c5a059] mb-6 border-b border-[#333] pb-2">CORE MECHANICS</h3>
+      <ul class="space-y-6">
+        <li class="flex gap-4 items-start">
+          <div class="flex-shrink-0 mt-1">
+            <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="text-[#c5a059]">
+              <circle cx="12" cy="12" r="10"></circle>
+              <line x1="22" y1="12" x2="18" y2="12"></line>
+              <line x1="6" y1="12" x2="2" y2="12"></line>
+              <line x1="12" y1="6" x2="12" y2="2"></line>
+              <line x1="12" y1="22" x2="12" y2="18"></line>
+            </svg>
+          </div>
+          <div>
+            <strong class="block text-[#f4f4f4] font-['Cinzel'] text-lg">Calculated Combat</strong>
+            <span class="text-gray-400 font-['Courier_Prime'] text-sm">Trade blows in a visceral boxing system where brains beat brawn. Freeze time to identify weak points.</span>
+          </div>
+        </li>
+        <li class="flex gap-4 items-start">
+          <div class="flex-shrink-0 mt-1">
+            <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="text-[#c5a059]">
+              <circle cx="11" cy="11" r="8"></circle>
+              <line x1="21" y1="21" x2="16.65" y2="16.65"></line>
+            </svg>
+          </div>
+          <div>
+            <strong class="block text-[#f4f4f4] font-['Cinzel'] text-lg">The Mind's Eye</strong>
+            <span class="text-gray-400 font-['Courier_Prime'] text-sm">Toggle your vision to see the world as data. Visualize bullet trajectories and acoustic echoes in real-time.</span>
+          </div>
+        </li>
+        <li class="flex gap-4 items-start">
+          <div class="flex-shrink-0 mt-1">
+            <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="text-[#c5a059]">
+              <circle cx="9" cy="12" r="1"></circle>
+              <circle cx="15" cy="12" r="1"></circle>
+              <path d="M8 20v2h8v-2"></path>
+              <path d="M12.5 17l-.5-1-.5 1h1z"></path>
+              <path d="M16 20a2 2 0 0 0 1.56-3.25 8 8 0 1 0-11.12 0A2 2 0 0 0 8 20"></path>
+            </svg>
+          </div>
+          <div>
+            <strong class="block text-[#f4f4f4] font-['Cinzel'] text-lg">The Mind Palace</strong>
+            <span class="text-gray-400 font-['Courier_Prime'] text-sm">Retreat into your own subconscious to reconstruct the crime scene. Simulate the murder until the pieces fit.</span>
+          </div>
+        </li>
+      </ul>
+    </div>
+
+    <div class="bg-[#111] border border-[#333] p-6 h-fit">
+      <h3 class="font-['Cinzel'] text-[#c5a059] mb-4">SYSTEM SPECS (TARGET)</h3>
+      <div class="font-['Courier_Prime'] text-xs text-gray-500 space-y-2">
+        <p>CPU: Intel Core i5-8400 / AMD Ryzen 5 2600</p>
+        <p>GPU: NVIDIA GTX 1060 / AMD RX 580</p>
+        <p>RAM: 12 GB</p>
+        <p>STORAGE: 40 GB</p>
+      </div>
+      <div class="mt-8 pt-8 border-t border-[#333] text-center">
+        <p class="text-[#f4f4f4] font-['Cinzel'] text-2xl">COMING 2026</p>
+      </div>
+    </div>
+  </div>
+</div>
+
+    </main>
+
+    <footer class="bg-[#050505] border-t border-[#222] py-8 text-center relative z-10">
+        <p class="font-['Courier_Prime'] text-xs text-[#666]">&copy; 1890-2025 THRESHOLD GAMES. LONDON.</p>
+    </footer>
+
+    <script>
+        // Flashlight cursor coords for subtle mask effect
+        const flash = document.getElementById('flash');
+        window.addEventListener('mousemove', (e) => {
+            flash.style.setProperty('--x', e.clientX + 'px');
+            flash.style.setProperty('--y', e.clientY + 'px');
+        });
+
+        // Mobile menu toggle
+        const menuBtn = document.getElementById('menu-btn');
+        const mobileMenu = document.getElementById('mobile-menu');
+        menuBtn.addEventListener('click', () => {
+            mobileMenu.classList.toggle('hidden');
+        });
+    </script>
+</body>
+</html>

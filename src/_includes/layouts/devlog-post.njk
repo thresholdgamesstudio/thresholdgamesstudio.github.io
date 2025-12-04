@@ -1,0 +1,46 @@
+---
+layout: layouts/base.njk
+---
+
+<article class="min-h-screen pt-32 pb-20 px-4 md:px-20 max-w-4xl mx-auto animate-fade-in-up">
+  <a href="/devlog/" class="mb-8 flex items-center gap-2 text-[#c5a059] hover:text-[#f4f4f4] transition-colors font-['Courier_Prime'] text-sm tracking-widest group">
+    <span class="transform group-hover:-translate-x-1 transition-transform inline-block">&lt;</span> RETURN TO ARCHIVES
+  </a>
+
+  <div class="border border-[#333] bg-[#0d0d0d] p-8 md:p-12 relative overflow-hidden shadow-2xl">
+    <div class="absolute top-6 right-6 border-2 border-[#8a1c1c] text-[#8a1c1c] px-4 py-2 font-['Courier_Prime'] font-bold text-xl transform rotate-12 opacity-50 pointer-events-none">
+      DECLASSIFIED
+    </div>
+
+    <div class="border-b border-[#333] pb-6 mb-8">
+      <div class="flex flex-col md:flex-row md:items-center justify-between gap-4 mb-4">
+        <span class="font-['Courier_Prime'] text-[#c5a059] text-xs tracking-[0.2em]">CASE ID: {{ id }}</span>
+        <span class="font-['Courier_Prime'] text-[#666] text-xs">{{ date }} // {{ type }}</span>
+      </div>
+      <h1 class="text-2xl md:text-4xl font-['Cinzel'] text-[#f4f4f4] leading-tight mb-2">{{ title }}</h1>
+    </div>
+
+    <div class="font-['Courier_Prime'] text-[#ccc] leading-relaxed whitespace-pre-wrap text-sm md:text-base font-light">
+      {{ content | safe }}
+    </div>
+
+    <div class="mt-12 pt-6 border-t border-[#333] flex justify-between items-end">
+      <div class="font-['Courier_Prime'] text-xs text-[#666]">
+        LOGGED BY:<br />
+        <span class="text-[#c5a059] text-base">{{ author }}</span>
+      </div>
+      <svg xmlns="http://www.w3.org/2000/svg" width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="text-[#333] animate-pulse">
+        <rect x="4" y="4" width="16" height="16" rx="2" ry="2"></rect>
+        <rect x="9" y="9" width="6" height="6"></rect>
+        <line x1="9" y1="1" x2="9" y2="4"></line>
+        <line x1="15" y1="1" x2="15" y2="4"></line>
+        <line x1="9" y1="20" x2="9" y2="23"></line>
+        <line x1="15" y1="20" x2="15" y2="23"></line>
+        <line x1="20" y1="9" x2="23" y2="9"></line>
+        <line x1="20" y1="14" x2="23" y2="14"></line>
+        <line x1="1" y1="9" x2="4" y2="9"></line>
+        <line x1="1" y1="14" x2="4" y2="14"></line>
+      </svg>
+    </div>
+  </div>
+</article>

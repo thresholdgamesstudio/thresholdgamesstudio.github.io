@@ -1,0 +1,16 @@
+{
+  "name": "thresholdgamesstudio.github.io",
+  "version": "0.1.0",
+  "private": true,
+  "description": "Threshold Games Studio - Eleventy powered site",
+  "scripts": {
+    "build": "eleventy",
+    "start": "eleventy --serve"
+  },
+  "devDependencies": {
+    "@11ty/eleventy": "^2.0.1"
+  },
+  "engines": {
+    "node": ">=14"
+  }
+}

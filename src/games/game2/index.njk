@@ -1,0 +1,105 @@
+---
+layout: layouts/base.njk
+title: "Baker Street: Origins"
+---
+
+<div class="h-screen pt-20 relative overflow-hidden bg-[#050505]">
+  <!-- Background -->
+  <div class="absolute inset-0 z-0">
+    <div class="absolute bottom-0 left-0 right-0 h-1/2 bg-gradient-to-t from-[#0a0a0a] to-transparent z-10"></div>
+    <div class="absolute inset-0 opacity-20" style="background-image: url('https://www.transparenttextures.com/patterns/foggy-birds.png')"></div>
+    <div class="absolute top-1/3 left-1/2 transform -translate-x-1/2 w-4 h-6 bg-[#ffdb8b] opacity-80 shadow-[0_0_20px_#ffdb8b] animate-pulse"></div>
+  </div>
+
+  <div class="relative z-20 h-full flex flex-col justify-between p-8 md:p-20">
+    <div class="text-center">
+      <h1 class="text-4xl md:text-6xl font-['Cinzel'] text-[#f4f4f4] tracking-widest opacity-80">BAKER STREET</h1>
+      <p class="font-['Courier_Prime'] text-[#c5a059] tracking-[0.5em] mt-2 text-sm">ORIGINS</p>
+    </div>
+
+    <div class="relative h-64 w-full max-w-3xl mx-auto border-t border-[#333] bg-[#0a0a0a]/80 backdrop-blur-md mt-auto rounded-t-lg shadow-2xl">
+      <div class="absolute -top-6 left-1/2 transform -translate-x-1/2 text-xs font-['Courier_Prime'] text-[#666]">
+        INVESTIGATION DESK (INTERACTIVE)
+      </div>
+
+      <div class="flex justify-around items-center h-full">
+        <button class="clue-btn group flex flex-col items-center gap-2 transition-transform hover:-translate-y-2 focus:outline-none" data-clue="map">
+          <div class="p-4 rounded-full border border-[#333] group-hover:border-[#c5a059] group-hover:bg-[#c5a059]/10 transition-colors">
+            <svg xmlns="http://www.w3.org/2000/svg" width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="text-[#ccc] group-hover:text-[#c5a059]">
+              <path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z"></path>
+              <circle cx="12" cy="10" r="3"></circle>
+            </svg>
+          </div>
+          <span class="text-[10px] font-['Courier_Prime'] text-[#666] opacity-0 group-hover:opacity-100 transition-opacity">DISTRICT MAP</span>
+        </button>
+
+        <button class="clue-btn group flex flex-col items-center gap-2 transition-transform hover:-translate-y-2 focus:outline-none" data-clue="gun">
+          <div class="p-4 rounded-full border border-[#333] group-hover:border-[#c5a059] group-hover:bg-[#c5a059]/10 transition-colors"><svg xmlns="http://www.w3.org/2000/svg" width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="text-[#ccc] group-hover:text-[#c5a059] animate-[spin_4s_linear_infinite_paused] group-hover:animate-[spin_4s_linear_infinite]"><circle cx="12" cy="12" r="10"></circle><line x1="22" y1="12" x2="18" y2="12"></line><line x1="6" y1="12" x2="2" y2="12"></line><line x1="12" y1="6" x2="12" y2="2"></line><line x1="12" y1="22" x2="12" y2="18"></line></svg></div>
+          <span class="text-[10px] font-['Courier_Prime'] text-[#666] opacity-0 group-hover:opacity-100 transition-opacity">EVIDENCE #44</span>
+        </button>
+
+        <button class="clue-btn group flex flex-col items-center gap-2 transition-transform hover:-translate-y-2 focus:outline-none" data-clue="letter">
+          <div class="p-4 rounded-full border border-[#333] group-hover:border-[#c5a059] group-hover:bg-[#c5a059]/10 transition-colors">
+            <svg xmlns="http://www.w3.org/2000/svg" width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="text-[#ccc] group-hover:text-[#c5a059]">
+              <path d="M13 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V9z"></path>
+              <polyline points="13 2 13 9 20 9"></polyline>
+            </svg>
+          </div>
+          <span class="text-[10px] font-['Courier_Prime'] text-[#666] opacity-0 group-hover:opacity-100 transition-opacity">READ LETTER</span>
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <div id="clueModal" class="hidden fixed inset-0 z-50 bg-black/90 flex items-center justify-center p-4">
+    <div class="max-w-md w-full border border-[#c5a059] bg-[#0f0f0f] p-8 relative" onclick="event.stopPropagation()">
+      <button class="absolute top-2 right-2 text-gray-500 hover:text-white text-2xl leading-none" id="closeBtn">&times;</button>
+      <h3 id="clueTitle" class="font-['Cinzel'] text-xl text-[#c5a059] mb-4 border-b border-[#333] pb-2"></h3>
+      <p id="clueContent" class="font-['Courier_Prime'] text-[#f4f4f4] leading-relaxed"></p>
+      <div id="signupForm" class="hidden mt-8 text-center">
+        <p class="text-xs font-['Courier_Prime'] text-[#666] mb-4">JOIN THE MAILING LIST</p>
+        <input type="email" placeholder="your email" class="w-full bg-[#0a0a0a] border border-[#333] text-[#ccc] px-4 py-2 font-['Courier_Prime'] text-sm rounded mb-2 focus:outline-none focus:border-[#c5a059]">
+        <button class="w-full px-4 py-2 bg-[#c5a059] text-[#0a0a0a] font-['Cinzel'] font-bold text-sm tracking-widest hover:bg-[#fff] transition-all">BECOME AN IRREGULAR</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<style>
+  .gun-icon.spin { animation: spin 4s linear infinite; }
+  @keyframes spin { to { transform: rotate(360deg); } }
+</style>
+
+<script>
+  const clues = {
+    map: { title: 'THE NETWORK', content: 'They think they can hide in the fog. But we see the strings connecting the docks to the palace.' },
+    gun: { title: 'THE TOOL', content: 'Standard issue Webley. The cylinder is empty, save for one casing. Etched on the brass: 1888.' },
+    letter: { title: 'THE INVITATION', content: '"My Dear Fellow, The city is rot. A sickness is spreading. Prepare yourself. The game is afoot." - M.' }
+  };
+
+  const modal = document.getElementById('clueModal');
+  const closeBtn = document.getElementById('closeBtn');
+  const clueTitle = document.getElementById('clueTitle');
+  const clueContent = document.getElementById('clueContent');
+  const signupForm = document.getElementById('signupForm');
+
+  document.querySelectorAll('.clue-btn').forEach(btn => {
+    btn.addEventListener('click', function() {
+      const key = this.getAttribute('data-clue');
+      const clue = clues[key];
+      clueTitle.textContent = clue.title;
+      clueContent.textContent = clue.content;
+      signupForm.classList.toggle('hidden', key !== 'letter');
+      modal.classList.remove('hidden');
+    });
+  });
+
+  closeBtn.addEventListener('click', () => modal.classList.add('hidden'));
+  modal.addEventListener('click', (e) => { if (e.target === modal) modal.classList.add('hidden'); });
+
+  const gunIcon = document.querySelector('[data-clue="gun"] .gun-icon');
+  if (gunIcon && gunIcon.parentElement.parentElement) {
+    gunIcon.parentElement.parentElement.addEventListener('mouseenter', () => gunIcon.classList.add('spin'));
+    gunIcon.parentElement.parentElement.addEventListener('mouseleave', () => gunIcon.classList.remove('spin'));
+  }
+</script>

@@ -1,0 +1,886 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Threshold Games Studio</title>
+
+    <!-- Fonts -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link
+        href="https://fonts.googleapis.com/css2?family=Cinzel:wght@400;700&family=Courier+Prime:wght@400;700&display=swap"
+        rel="stylesheet">
+
+    <!-- Tailwind CSS -->
+    <script src="https://cdn.tailwindcss.com"></script>
+
+    <!-- React & ReactDOM -->
+    <script crossorigin src="https://unpkg.com/react@18/umd/react.development.js"></script>
+    <script crossorigin src="https://unpkg.com/react-dom@18/umd/react-dom.development.js"></script>
+
+    <!-- Babel for JSX -->
+    <script src="https://unpkg.com/@babel/standalone/babel.min.js"></script>
+
+    <style>
+        /* Custom Animations & Effects */
+        @keyframes fadeInUp {
+            from {
+                opacity: 0;
+                transform: translateY(20px);
+            }
+
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        .animate-fade-in-up {
+            animation: fadeInUp 0.8s ease-out forwards;
+        }
+
+        .animate-fade-in {
+            animation: fadeIn 1s ease-out forwards;
+        }
+
+        .animate-fade-in-delay {
+            animation: fadeIn 1s ease-out 0.5s forwards;
+            opacity: 0;
+        }
+
+        .animate-fade-in-delay-2 {
+            animation: fadeIn 1s ease-out 1s forwards;
+            opacity: 0;
+        }
+
+        @keyframes fadeIn {
+            from {
+                opacity: 0;
+            }
+
+            to {
+                opacity: 1;
+            }
+        }
+
+        /* The Flashlight Texture Layer */
+        .flashlight-layer {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            pointer-events: none;
+            z-index: 1;
+            /* A subtle circuit/noise pattern */
+            background-image:
+                radial-gradient(#333 1px, transparent 1px),
+                radial-gradient(#222 1px, transparent 1px);
+            background-size: 20px 20px;
+            background-position: 0 0, 10px 10px;
+
+            /* The Mask: Transparent at mouse position, opaque elsewhere (hiding the pattern) */
+            mask-image: radial-gradient(circle 250px at var(--x, 50%) var(--y, 50%), black 0%, transparent 100%);
+            -webkit-mask-image: radial-gradient(circle 250px at var(--x, 50%) var(--y, 50%), black 0%, transparent 100%);
+
+            opacity: 0.15;
+        }
+
+        /* Scrollbar Styling */
+        ::-webkit-scrollbar {
+            width: 8px;
+        }
+
+        ::-webkit-scrollbar-track {
+            background: #0a0a0a;
+        }
+
+        ::-webkit-scrollbar-thumb {
+            background: #333;
+        }
+
+        ::-webkit-scrollbar-thumb:hover {
+            background: #c5a059;
+        }
+
+        body {
+            background-color: #0a0a0a;
+            color: #f4f4f4;
+        }
+    </style>
+</head>
+
+<body>
+    <div id="root"></div>
+
+    <script type="text/babel">
+        const { useState, useEffect, useRef } = React;
+
+        // --- Icon Components (Inline SVGs to replace lucide-react) ---
+
+        const IconBase = ({ size = 24, className = "", children }) => (
+            <svg
+                xmlns="http://www.w3.org/2000/svg"
+                width={size}
+                height={size}
+                viewBox="0 0 24 24"
+                fill="none"
+                stroke="currentColor"
+                strokeWidth="2"
+                strokeLinecap="round"
+                strokeLinejoin="round"
+                className={className}
+            >
+                {children}
+            </svg>
+        );
+
+        const Search = (props) => (
+            <IconBase {...props}>
+                <circle cx="11" cy="11" r="8"></circle>
+                <line x1="21" y1="21" x2="16.65" y2="16.65"></line>
+            </IconBase>
+        );
+
+        const MapIcon = (props) => (
+            <IconBase {...props}>
+                <polygon points="1 6 1 22 8 18 16 22 23 18 23 2 16 6 8 2 1 6"></polygon>
+                <line x1="8" y1="2" x2="8" y2="18"></line>
+                <line x1="16" y1="6" x2="16" y2="22"></line>
+            </IconBase>
+        );
+
+        const FileText = (props) => (
+            <IconBase {...props}>
+                <path d="M14.5 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V7.5L14.5 2z"></path>
+                <polyline points="14 2 14 8 20 8"></polyline>
+                <line x1="16" y1="13" x2="8" y2="13"></line>
+                <line x1="16" y1="17" x2="8" y2="17"></line>
+                <polyline points="10 9 9 9 8 9"></polyline>
+            </IconBase>
+        );
+
+        const Crosshair = (props) => (
+            <IconBase {...props}>
+                <circle cx="12" cy="12" r="10"></circle>
+                <line x1="22" y1="12" x2="18" y2="12"></line>
+                <line x1="6" y1="12" x2="2" y2="12"></line>
+                <line x1="12" y1="6" x2="12" y2="2"></line>
+                <line x1="12" y1="22" x2="12" y2="18"></line>
+            </IconBase>
+        );
+
+        const User = (props) => (
+            <IconBase {...props}>
+                <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"></path>
+                <circle cx="12" cy="7" r="4"></circle>
+            </IconBase>
+        );
+
+        const Menu = (props) => (
+            <IconBase {...props}>
+                <line x1="3" y1="12" x2="21" y2="12"></line>
+                <line x1="3" y1="6" x2="21" y2="6"></line>
+                <line x1="3" y1="18" x2="21" y2="18"></line>
+            </IconBase>
+        );
+
+        const X = (props) => (
+            <IconBase {...props}>
+                <line x1="18" y1="6" x2="6" y2="18"></line>
+                <line x1="6" y1="6" x2="18" y2="18"></line>
+            </IconBase>
+        );
+
+        const ChevronRight = (props) => (
+            <IconBase {...props}>
+                <polyline points="9 18 15 12 9 6"></polyline>
+            </IconBase>
+        );
+
+        const Terminal = (props) => (
+            <IconBase {...props}>
+                <polyline points="4 17 10 11 4 5"></polyline>
+                <line x1="12" y1="19" x2="20" y2="19"></line>
+            </IconBase>
+        );
+
+        const Cpu = (props) => (
+            <IconBase {...props}>
+                <rect x="4" y="4" width="16" height="16" rx="2" ry="2"></rect>
+                <rect x="9" y="9" width="6" height="6"></rect>
+                <line x1="9" y1="1" x2="9" y2="4"></line>
+                <line x1="15" y1="1" x2="15" y2="4"></line>
+                <line x1="9" y1="20" x2="9" y2="23"></line>
+                <line x1="15" y1="20" x2="15" y2="23"></line>
+                <line x1="20" y1="9" x2="23" y2="9"></line>
+                <line x1="20" y1="14" x2="23" y2="14"></line>
+                <line x1="1" y1="9" x2="4" y2="9"></line>
+                <line x1="1" y1="14" x2="4" y2="14"></line>
+            </IconBase>
+        );
+
+        const Skull = (props) => (
+            <IconBase {...props}>
+                <circle cx="9" cy="12" r="1"></circle>
+                <circle cx="15" cy="12" r="1"></circle>
+                <path d="M8 20v2h8v-2"></path>
+                <path d="M12.5 17l-.5-1-.5 1h1z"></path>
+                <path d="M16 20a2 2 0 0 0 1.56-3.25 8 8 0 1 0-11.12 0A2 2 0 0 0 8 20"></path>
+            </IconBase>
+        );
+
+        const ArrowRight = (props) => (
+            <IconBase {...props}>
+                <line x1="5" y1="12" x2="19" y2="12"></line>
+                <polyline points="12 5 19 12 12 19"></polyline>
+            </IconBase>
+        );
+
+        // --- Assets & Data ---
+
+        const COLORS = {
+            void: '#0a0a0a',
+            paper: '#f4f4f4',
+            tungsten: '#c5a059',
+            tungstenDim: '#8a6e36',
+            crimson: '#8a1c1c'
+        };
+
+        const TEAM_MEMBERS = [
+            { name: "Arthur Vance", role: "LEAD ARCHITECT", bio: "Former historian turned level designer. Obsessed with Victorian sewage systems." },
+            { name: "Elena 'Glitch' K.", role: "NARRATIVE AGENT", bio: "Writes code like poetry and poetry like code. Can decode ciphers in sleep." },
+            { name: "Dr. J. Watson (AI)", role: "LOGIC ENGINE", bio: "Our procedural generation backend. It occasionally hallucinates ghosts." }
+        ];
+
+        const DEVLOG_POSTS = [
+            {
+                id: "001",
+                title: "Evidence Log #004: London Rain",
+                date: "1874-11-02",
+                type: "AUDIO_ENG",
+                author: "Sound Architect V.H.",
+                content: `SUBJECT: Environmental Audio Synthesis
+LOCATION: Whitechapel District (Simulation)
+
+We have successfully captured the acoustic signature of heavy rainfall on cobblestone. The initial synthesis lacked 'weight', sounding more like static than precipitation.
+
+ADJUSTMENTS MADE:
+- Added randomized pitch modulation to droplet impacts based on surface material (Cobble vs. Wood vs. Flesh).
+- Implemented spatial occlusion for overhangs and archways.
+- Recorded foley samples using wet wool and slate tiles.
+
+The result is haunting. When the player stands under the gaslight, the rain doesn't just look real—it feels cold. The dampness seems to seep through the speakers.`
+            },
+            {
+                id: "002",
+                title: "Case Note #012: Ragdoll Physics",
+                date: "1874-11-15",
+                type: "PHYSICS",
+                author: "Lead Dev A. Vance",
+                content: `SUBJECT: Rigor Mortis Implementation
+PRIORITY: High
+
+Standard ragdoll physics feel too loose for our requirements. Bodies in 'Threshold' cannot flop like empty sacks; they must carry the weight of the dead.
+
+We are implementing a localized stiffness system. When an enemy is neutralized:
+1. Joints lock progressively based on the time of death.
+2. Impact force is preserved, allowing for 'knockback' that feels heavy and brutal.
+3. We encountered a bug where the physics engine calculated infinite mass for the bowler hats. This has been rectified, though the 'Lethal Hat' mechanic is being considered for a spin-off.`
+            },
+            {
+                id: "003",
+                title: "Interrogation Room: Lead Animator",
+                date: "1874-12-01",
+                type: "HR_DEPT",
+                author: "The Interviewer",
+                content: `TRANSCRIPT [REDACTED]
+
+Q: You spent three weeks studying Victorian boxing manuals?
+A: Bare-knuckle boxing is distinct. It's not about the gloves; it's about bone alignment. If you punch wrong, you break your hand, not their jaw.
+
+Q: How does this translate to gameplay?
+A: The animations are deliberate. We removed the "snap" common in modern fighters. Every swing has a wind-up, a commitment. If the player misses, they are left wide open. It's a game of risk.
+
+Q: And the tea drinking animation?
+A: Mocap for that was... extensive. We went through four kettles.`
+            },
+        ];
+
+        // --- Components ---
+
+        const Navigation = ({ activePage, navigateTo, isMobileMenuOpen, setIsMobileMenuOpen }) => {
+            const navItems = [
+                { id: 'home', label: 'LOBBY' },
+                { id: 'about', label: 'THE SPACE BETWEEN' },
+                { id: 'games', label: 'INVESTIGATIONS' },
+                { id: 'devlog', label: 'CASE FILES' },
+            ];
+
+            return (
+                <nav className="fixed top-0 w-full z-50 border-b border-[#333] bg-[#0a0a0a]/90 backdrop-blur-sm">
+                    <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+                        <div className="flex items-center justify-between h-20">
+                            <div className="flex-shrink-0 cursor-pointer group" onClick={() => navigateTo('home')}>
+                                <div className="text-2xl font-['Cinzel'] text-[#f4f4f4] tracking-widest group-hover:text-[#c5a059] transition-colors">
+                                    THRESHOLD
+                                </div>
+                                <div className="text-[10px] font-['Courier_Prime'] text-[#c5a059] tracking-[0.3em]">
+                                    GAMES STUDIO
+                                </div>
+                            </div>
+
+                            <div className="hidden md:block">
+                                <div className="ml-10 flex items-baseline space-x-8">
+                                    {navItems.map((item) => (
+                                        <button
+                                            key={item.id}
+                                            onClick={() => navigateTo(item.id)}
+                                            className={`px-3 py-2 text-sm font-['Courier_Prime'] tracking-wider transition-all duration-300 ${activePage === item.id
+                                                ? 'text-[#c5a059] border-b border-[#c5a059]'
+                                                : 'text-[#f4f4f4] hover:text-[#c5a059] hover:opacity-80'
+                                                }`}
+                                        >
+                                            {item.label}
+                                        </button>
+                                    ))}
+                                </div>
+                            </div>
+
+                            <div className="-mr-2 flex md:hidden">
+                                <button
+                                    onClick={() => setIsMobileMenuOpen(!isMobileMenuOpen)}
+                                    className="inline-flex items-center justify-center p-2 rounded-md text-gray-400 hover:text-white hover:bg-gray-700 focus:outline-none"
+                                >
+                                    {isMobileMenuOpen ? <X size={24} color={COLORS.tungsten} /> : <Menu size={24} color={COLORS.tungsten} />}
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+
+                    {/* Mobile Menu */}
+                    {isMobileMenuOpen && (
+                        <div className="md:hidden bg-[#0a0a0a] border-b border-[#333]">
+                            <div className="px-2 pt-2 pb-3 space-y-1 sm:px-3">
+                                {navItems.map((item) => (
+                                    <button
+                                        key={item.id}
+                                        onClick={() => { navigateTo(item.id); setIsMobileMenuOpen(false); }}
+                                        className="text-gray-300 hover:text-[#c5a059] block px-3 py-2 rounded-md text-base font-medium font-['Courier_Prime'] w-full text-left"
+                                    >
+                                        {item.label}
+                                    </button>
+                                ))}
+                            </div>
+                        </div>
+                    )}
+                </nav>
+            );
+        };
+
+        const SectionHeader = ({ title, subtitle }) => (
+            <div className="mb-12 border-l-4 border-[#c5a059] pl-6 py-2 animate-fade-in-up">
+                <h1 className="text-4xl md:text-6xl font-['Cinzel'] text-[#f4f4f4] mb-2">{title}</h1>
+                {subtitle && <p className="text-[#c5a059] font-['Courier_Prime'] tracking-widest uppercase text-sm md:text-base">{subtitle}</p>}
+            </div>
+        );
+
+        const Button = ({ children, primary = false, onClick }) => (
+            <button
+                onClick={onClick}
+                className={`
+                    relative overflow-hidden group px-8 py-3 font-['Cinzel'] font-bold tracking-widest text-sm md:text-base transition-all duration-300
+                    ${primary
+                        ? 'bg-[#c5a059] text-[#0a0a0a] hover:bg-[#fff]'
+                        : 'border border-[#c5a059] text-[#c5a059] hover:bg-[#c5a059] hover:text-[#0a0a0a]'}
+                `}
+            >
+                <span className="relative z-10 flex items-center gap-2">
+                    {children}
+                </span>
+            </button>
+        );
+
+        // --- Pages ---
+
+        const HomePage = ({ navigateTo }) => (
+            <div className="h-screen flex flex-col items-center justify-center relative overflow-hidden">
+                <div className="absolute inset-0 z-0 opacity-20">
+                    {/* Abstract Door shape created with CSS borders */}
+                    <div className="absolute top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2 w-[300px] h-[500px] border-4 border-[#f4f4f4] shadow-[0_0_50px_rgba(197,160,89,0.2)]"></div>
+                    <div className="absolute top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2 w-[10px] h-[500px] bg-[#0a0a0a]"></div>
+                </div>
+
+                <div className="z-10 text-center px-4 max-w-4xl mx-auto">
+                    <h1 className="text-5xl md:text-8xl font-['Cinzel'] text-[#f4f4f4] mb-6 tracking-tight drop-shadow-2xl animate-fade-in">
+                        STEP INTO THE <span className="text-transparent bg-clip-text bg-gradient-to-r from-[#c5a059] to-[#f4f4f4]">UNKNOWN</span>
+                    </h1>
+                    <p className="text-base md:text-xl font-['Courier_Prime'] text-[#ccc] mb-12 leading-relaxed max-w-2xl mx-auto animate-fade-in-delay">
+                        Threshold Games is an independent studio dedicated to the space between genres. We build worlds where every shadow holds a secret, and every player holds the key.
+                    </p>
+                    <div className="animate-fade-in-delay-2">
+                        <Button primary onClick={() => navigateTo('games')}>
+                            INVESTIGATE OUR GAMES <ArrowRight size={18} />
+                        </Button>
+                    </div>
+                </div>
+            </div>
+        );
+
+        const AboutPage = () => (
+            <div className="min-h-screen pt-32 pb-20 px-4 md:px-20 max-w-7xl mx-auto">
+                <SectionHeader title="THE SPACE BETWEEN" subtitle="Studio Philosophy" />
+
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-16 mb-24">
+                    <div className="font-['Courier_Prime'] text-[#ccc] text-lg leading-relaxed space-y-6">
+                        <p>
+                            <span className="text-[#c5a059] font-bold text-xl">Threshold Games</span> was founded on a simple question: <span className="italic">What happens when you cross the line?</span>
+                        </p>
+                        <p>
+                            We don't just make games; we build mysteries. We blend the grit of historical action with the precision of classic deduction. Whether we are reconstructing a crime scene in 1890s London or charting the edge of a sci-fi galaxy, our mission remains the same:
+                        </p>
+                        <p className="border-l-2 border-[#c5a059] pl-4 italic">
+                            To respect the player's intelligence. We believe games shouldn't just be played—they should be solved.
+                        </p>
+                    </div>
+                    <div className="relative border border-[#333] bg-[#111] p-8 flex items-center justify-center">
+                        {/* Decorative Grid */}
+                        <div className="absolute inset-0 opacity-10" style={{ backgroundImage: 'linear-gradient(#c5a059 1px, transparent 1px), linear-gradient(90deg, #c5a059 1px, transparent 1px)', backgroundSize: '40px 40px' }}></div>
+                        <div className="text-center z-10">
+                            <Cpu size={64} className="text-[#c5a059] mx-auto mb-4 animate-pulse" />
+                            <h3 className="font-['Cinzel'] text-2xl text-white">GENRE HYBRIDIZATION</h3>
+                            <p className="font-['Courier_Prime'] text-sm text-[#888] mt-2">INITIALIZING...</p>
+                        </div>
+                    </div>
+                </div>
+
+                <h2 className="text-3xl font-['Cinzel'] text-[#f4f4f4] mb-10 border-b border-[#333] pb-4">PERSONNEL DOSSIERS</h2>
+                <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
+                    {TEAM_MEMBERS.map((member, idx) => (
+                        <div key={idx} className="bg-[#141414] border border-[#333] p-6 relative group hover:border-[#c5a059] transition-colors duration-300">
+                            <div className="absolute top-4 right-4 border-2 border-red-900 text-red-800 px-2 py-1 font-['Courier_Prime'] font-bold text-xs transform rotate-12 opacity-70">
+                                CONFIDENTIAL
+                            </div>
+                            <div className="w-24 h-24 bg-[#000] mb-4 grayscale contrast-125 flex items-center justify-center border border-[#333]">
+                                <User size={40} className="text-[#444]" />
+                            </div>
+                            <h3 className="text-xl font-['Cinzel'] text-[#f4f4f4]">{member.name}</h3>
+                            <p className="text-red-700 font-['Courier_Prime'] text-sm font-bold mt-1 mb-4 tracking-wider">{member.role}</p>
+                            <p className="font-['Courier_Prime'] text-xs text-[#999] leading-relaxed">{member.bio}</p>
+                        </div>
+                    ))}
+                </div>
+            </div>
+        );
+
+        const GamesListPage = ({ navigateTo }) => (
+            <div className="min-h-screen pt-32 pb-20 px-4 md:px-20 max-w-7xl mx-auto">
+                <SectionHeader title="ACTIVE INVESTIGATIONS" subtitle="Current Projects" />
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
+                    {/* Game 1 Card */}
+                    <div className="group border border-[#333] bg-[#0d0d0d] hover:border-[#c5a059] transition-all duration-300 cursor-pointer" onClick={() => navigateTo('game1')}>
+                        <div className="h-64 bg-neutral-900 relative overflow-hidden">
+                            <div className="absolute inset-0 bg-gradient-to-t from-[#0a0a0a] to-transparent z-10"></div>
+                            <div className="absolute inset-0 opacity-20" style={{ backgroundImage: 'url("data:image/svg+xml,%3Csvg width=\'20\' height=\'20\' viewBox=\'0 0 20 20\' xmlns=\'http://www.w3.org/2000/svg\'%3E%3Cg fill=\'%23ffffff\' fill-opacity=\'1\' fill-rule=\'evenodd\'%3E%3Ccircle cx=\'3\' cy=\'3\' r=\'1\'/%3E%3C/g%3E%3C/svg%3E")', opacity: 0.1 }}></div>
+                            <div className="absolute bottom-4 left-4 z-20">
+                                <div className="font-['Cinzel'] text-2xl text-[#f4f4f4] group-hover:text-[#c5a059] transition-colors">SHERLOCK HOLMES</div>
+                                <div className="font-['Courier_Prime'] text-sm text-[#c5a059]">THE FIRST THREAD</div>
+                            </div>
+                        </div>
+                        <div className="p-6">
+                            <p className="font-['Courier_Prime'] text-sm text-[#ccc] mb-6 line-clamp-3">
+                                It is 1874. A professor lies dead behind a locked door. The police call it a suicide. You know better. In this "Vertical Slice" standalone title, you will master the skills that will one day make you the world's greatest detective.
+                            </p>
+                            <Button onClick={() => navigateTo('game1')}>INSPECT CASE FILE</Button>
+                        </div>
+                    </div>
+
+                    {/* Game 2 Card */}
+                    <div className="group border border-[#333] bg-[#0d0d0d] hover:border-[#c5a059] transition-all duration-300 cursor-pointer" onClick={() => navigateTo('game2')}>
+                        <div className="h-64 bg-neutral-900 relative overflow-hidden">
+                            <div className="absolute inset-0 bg-gradient-to-t from-[#0a0a0a] to-transparent z-10"></div>
+                            <div className="absolute inset-0 opacity-20" style={{ backgroundImage: 'url(https://www.transparenttextures.com/patterns/foggy-birds.png)' }}></div>
+                            <div className="absolute bottom-4 left-4 z-20">
+                                <div className="font-['Cinzel'] text-2xl text-[#f4f4f4] group-hover:text-[#c5a059] transition-colors">BAKER STREET</div>
+                                <div className="font-['Courier_Prime'] text-sm text-[#c5a059]">ORIGINS</div>
+                            </div>
+                        </div>
+                        <div className="p-6">
+                            <p className="font-['Courier_Prime'] text-sm text-[#ccc] mb-6 line-clamp-3">
+                                The city is rot. From the docks to the palace, a sickness is spreading. They think they can hide it in the fog. But we see clearly, don't we? An interactive investigation into the origins of the irregulars.
+                            </p>
+                            <Button onClick={() => navigateTo('game2')}>INSPECT CASE FILE</Button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        );
+
+        const Game1Page = () => (
+            <div className="min-h-screen pt-32 pb-20 px-4 md:px-20 max-w-7xl mx-auto">
+                <div className="relative mb-16 rounded-sm overflow-hidden border border-[#333]">
+                    {/* Hero Area Simulation */}
+                    <div className="h-[50vh] bg-neutral-900 relative flex items-center justify-center overflow-hidden">
+                        <div className="absolute inset-0 bg-gradient-to-t from-[#0a0a0a] to-transparent z-10"></div>
+                        {/* Abstract rain effect */}
+                        <div className="absolute inset-0 opacity-10" style={{ backgroundImage: 'url("data:image/svg+xml,%3Csvg width=\'20\' height=\'20\' viewBox=\'0 0 20 20\' xmlns=\'http://www.w3.org/2000/svg\'%3E%3Cg fill=\'%23ffffff\' fill-opacity=\'1\' fill-rule=\'evenodd\'%3E%3Ccircle cx=\'3\' cy=\'3\' r=\'1\'/%3E%3C/g%3E%3C/svg%3E")', opacity: 0.1 }}></div>
+
+                        <div className="z-20 text-center px-4">
+                            <div className="font-['Cinzel'] text-5xl md:text-7xl text-[#f4f4f4] mb-2 drop-shadow-lg">SHERLOCK HOLMES</div>
+                            <div className="font-['Courier_Prime'] text-xl md:text-3xl text-[#c5a059] tracking-[0.2em] bg-black/50 inline-block px-4 py-1">THE FIRST THREAD</div>
+                        </div>
+                    </div>
+                </div>
+
+                <div className="grid grid-cols-1 lg:grid-cols-3 gap-12">
+                    <div className="lg:col-span-2">
+                        <h2 className="text-2xl font-['Cinzel'] text-[#f4f4f4] mb-6">Before the Legend. There Was the Student.</h2>
+                        <div className="font-['Courier_Prime'] text-[#ccc] space-y-4 mb-8 text-sm md:text-base">
+                            <p>It is 1874. A professor lies dead behind a locked door. The police call it a suicide. You know better.</p>
+                            <p>In this "Vertical Slice" standalone title, you will master the skills that will one day make you the world's greatest detective. Introduce yourself to the Threshold Deduction System.</p>
+                        </div>
+
+                        <div className="flex gap-4 mb-12">
+                            <Button primary>WISHLIST ON STEAM</Button>
+                            <Button>VIEW TRAILER</Button>
+                        </div>
+
+                        <h3 className="text-xl font-['Cinzel'] text-[#c5a059] mb-6 border-b border-[#333] pb-2">CORE MECHANICS</h3>
+                        <ul className="space-y-6">
+                            {[
+                                { title: "Calculated Combat", desc: "Trade blows in a visceral boxing system where brains beat brawn. Freeze time to identify weak points.", icon: <Crosshair className="text-[#c5a059] mt-1" size={24} /> },
+                                { title: "The Mind's Eye", desc: "Toggle your vision to see the world as data. Visualize bullet trajectories and acoustic echoes in real-time.", icon: <Search className="text-[#c5a059] mt-1" size={24} /> },
+                                { title: "The Mind Palace", desc: "Retreat into your own subconscious to reconstruct the crime scene. Simulate the murder until the pieces fit.", icon: <Skull className="text-[#c5a059] mt-1" size={24} /> }
+                            ].map((feature, i) => (
+                                <li key={i} className="flex gap-4 items-start">
+                                    <div className="flex-shrink-0">{feature.icon}</div>
+                                    <div>
+                                        <strong className="block text-[#f4f4f4] font-['Cinzel'] text-lg">{feature.title}</strong>
+                                        <span className="text-gray-400 font-['Courier_Prime'] text-sm">{feature.desc}</span>
+                                    </div>
+                                </li>
+                            ))}
+                        </ul>
+                    </div>
+
+                    <div className="bg-[#111] border border-[#333] p-6 h-fit">
+                        <h3 className="font-['Cinzel'] text-[#c5a059] mb-4">SYSTEM SPECS (TARGET)</h3>
+                        <div className="font-['Courier_Prime'] text-xs text-gray-500 space-y-2">
+                            <p>CPU: Intel Core i5-8400 / AMD Ryzen 5 2600</p>
+                            <p>GPU: NVIDIA GTX 1060 / AMD RX 580</p>
+                            <p>RAM: 12 GB</p>
+                            <p>STORAGE: 40 GB</p>
+                        </div>
+                        <div className="mt-8 pt-8 border-t border-[#333] text-center">
+                            <p className="text-[#f4f4f4] font-['Cinzel'] text-2xl">COMING 2026</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        );
+
+        const Game2Page = () => {
+            const [activeClue, setActiveClue] = useState(null);
+            const [showSubscribeMsg, setShowSubscribeMsg] = useState(false);
+
+            const clues = {
+                map: { title: "THE NETWORK", content: "They think they can hide in the fog. But we see the strings connecting the docks to the palace." },
+                gun: { title: "THE TOOL", content: "Standard issue Webley. The cylinder is empty, save for one casing. Etched on the brass: 1888." },
+                letter: { title: "THE INVITATION", content: "\"My Dear Fellow, The city is rot. A sickness is spreading. Prepare yourself. The game is afoot.\"" }
+            };
+
+            const handleSubscribe = () => {
+                setShowSubscribeMsg(true);
+                setTimeout(() => setShowSubscribeMsg(false), 3000);
+            };
+
+            return (
+                <div className="h-screen pt-20 relative overflow-hidden bg-[#050505]">
+                    {/* Background Image Placeholder - using CSS shapes to simulate skyline */}
+                    <div className="absolute inset-0 z-0">
+                        <div className="absolute bottom-0 left-0 right-0 h-1/2 bg-gradient-to-t from-[#0a0a0a] to-transparent z-10"></div>
+                        {/* Fog */}
+                        <div className="absolute inset-0 opacity-20" style={{ backgroundImage: 'url(https://www.transparenttextures.com/patterns/foggy-birds.png)' }}></div>
+
+                        {/* 221B Window */}
+                        <div className="absolute top-1/3 left-1/2 transform -translate-x-1/2 w-4 h-6 bg-[#ffdb8b] opacity-80 shadow-[0_0_20px_#ffdb8b] animate-pulse"></div>
+                    </div>
+
+                    <div className="relative z-20 h-full flex flex-col justify-between p-8 md:p-20">
+                        <div className="text-center">
+                            <h1 className="text-4xl md:text-6xl font-['Cinzel'] text-[#f4f4f4] tracking-widest opacity-80">BAKER STREET</h1>
+                            <p className="font-['Courier_Prime'] text-[#c5a059] tracking-[0.5em] mt-2 text-sm">ORIGINS</p>
+                        </div>
+
+                        {/* Interactive Desk Area */}
+                        <div className="relative h-64 w-full max-w-3xl mx-auto border-t border-[#333] bg-[#0a0a0a]/80 backdrop-blur-md mt-auto rounded-t-lg shadow-2xl">
+                            <div className="absolute -top-6 left-1/2 transform -translate-x-1/2 text-xs font-['Courier_Prime'] text-[#666]">
+                                INVESTIGATION DESK (INTERACTIVE)
+                            </div>
+
+                            <div className="flex justify-around items-center h-full">
+                                {/* Map Clue */}
+                                <button
+                                    onClick={() => setActiveClue('map')}
+                                    className="group flex flex-col items-center gap-2 transition-transform hover:-translate-y-2 focus:outline-none"
+                                >
+                                    <div className="p-4 rounded-full border border-[#333] group-hover:border-[#c5a059] group-hover:bg-[#c5a059]/10 transition-colors">
+                                        <MapIcon className="text-[#ccc] group-hover:text-[#c5a059]" size={32} />
+                                    </div>
+                                    <span className="text-[10px] font-['Courier_Prime'] text-[#666] opacity-0 group-hover:opacity-100 transition-opacity">DISTRICT MAP</span>
+                                </button>
+
+                                {/* Gun Clue */}
+                                <button
+                                    onClick={() => setActiveClue('gun')}
+                                    className="group flex flex-col items-center gap-2 transition-transform hover:-translate-y-2 focus:outline-none"
+                                >
+                                    <div className="p-4 rounded-full border border-[#333] group-hover:border-[#c5a059] group-hover:bg-[#c5a059]/10 transition-colors">
+                                        <Crosshair className="text-[#ccc] group-hover:text-[#c5a059] animate-[spin_4s_linear_infinite_paused] group-hover:animate-[spin_4s_linear_infinite]" size={32} />
+                                    </div>
+                                    <span className="text-[10px] font-['Courier_Prime'] text-[#666] opacity-0 group-hover:opacity-100 transition-opacity">EVIDENCE #44</span>
+                                </button>
+
+                                {/* Letter Clue */}
+                                <button
+                                    onClick={() => setActiveClue('letter')}
+                                    className="group flex flex-col items-center gap-2 transition-transform hover:-translate-y-2 focus:outline-none"
+                                >
+                                    <div className="p-4 rounded-full border border-[#333] group-hover:border-[#c5a059] group-hover:bg-[#c5a059]/10 transition-colors">
+                                        <FileText className="text-[#ccc] group-hover:text-[#c5a059]" size={32} />
+                                    </div>
+                                    <span className="text-[10px] font-['Courier_Prime'] text-[#666] opacity-0 group-hover:opacity-100 transition-opacity">READ LETTER</span>
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+
+                    {/* Clue Overlay Modal */}
+                    {activeClue && (
+                        <div className="absolute inset-0 z-50 bg-black/90 flex items-center justify-center p-4" onClick={() => setActiveClue(null)}>
+                            <div className="max-w-md w-full border border-[#c5a059] bg-[#0f0f0f] p-8 relative animate-fade-in-up" onClick={e => e.stopPropagation()}>
+                                <button className="absolute top-2 right-2 text-gray-500 hover:text-white" onClick={() => setActiveClue(null)}>
+                                    <X size={20} />
+                                </button>
+                                <h3 className="font-['Cinzel'] text-xl text-[#c5a059] mb-4 border-b border-[#333] pb-2">
+                                    {clues[activeClue].title}
+                                </h3>
+                                <p className="font-['Courier_Prime'] text-[#f4f4f4] leading-relaxed">
+                                    {clues[activeClue].content}
+                                </p>
+                                {activeClue === 'letter' && (
+                                    <div className="mt-8 text-center">
+                                        <Button primary onClick={handleSubscribe}>
+                                            {showSubscribeMsg ? "CONFIRMED" : "JOIN THE MAILING LIST"}
+                                        </Button>
+                                        <p className="mt-2 text-xs font-['Courier_Prime'] text-[#666]">
+                                            {showSubscribeMsg ? "You are now an Irregular." : "Become an Irregular"}
+                                        </p>
+                                    </div>
+                                )}
+                            </div>
+                        </div>
+                    )}
+                </div>
+            );
+        };
+
+        const DevlogPage = ({ postId, navigateTo }) => {
+            const selectedPost = postId ? DEVLOG_POSTS.find(p => p.id === postId) : null;
+
+            // Detailed View
+            if (selectedPost) {
+                return (
+                    <div className="min-h-screen pt-32 pb-20 px-4 md:px-20 max-w-4xl mx-auto animate-fade-in-up">
+                        <button
+                            onClick={() => navigateTo('devlog')}
+                            className="mb-8 flex items-center gap-2 text-[#c5a059] hover:text-[#f4f4f4] transition-colors font-['Courier_Prime'] text-sm tracking-widest group"
+                        >
+                            <span className="transform group-hover:-translate-x-1 transition-transform inline-block">{'<'}</span> RETURN TO ARCHIVES
+                        </button>
+
+                        <div className="border border-[#333] bg-[#0d0d0d] p-8 md:p-12 relative overflow-hidden shadow-2xl">
+                            {/* Decorative Stamps */}
+                            <div className="absolute top-6 right-6 border-2 border-[#8a1c1c] text-[#8a1c1c] px-4 py-2 font-['Courier_Prime'] font-bold text-xl transform rotate-12 opacity-50 pointer-events-none">
+                                DECLASSIFIED
+                            </div>
+
+                            <div className="border-b border-[#333] pb-6 mb-8">
+                                <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 mb-4">
+                                    <span className="font-['Courier_Prime'] text-[#c5a059] text-xs tracking-[0.2em]">CASE ID: {selectedPost.id}</span>
+                                    <span className="font-['Courier_Prime'] text-[#666] text-xs">{selectedPost.date} // {selectedPost.type}</span>
+                                </div>
+                                <h1 className="text-2xl md:text-4xl font-['Cinzel'] text-[#f4f4f4] leading-tight mb-2">{selectedPost.title}</h1>
+                            </div>
+
+                            <div className="font-['Courier_Prime'] text-[#ccc] leading-relaxed whitespace-pre-wrap text-sm md:text-base font-light">
+                                {selectedPost.content}
+                            </div>
+
+                            <div className="mt-12 pt-6 border-t border-[#333] flex justify-between items-end">
+                                <div className="font-['Courier_Prime'] text-xs text-[#666]">
+                                    LOGGED BY:<br />
+                                    <span className="text-[#c5a059] text-base">{selectedPost.author}</span>
+                                </div>
+                                <Cpu className="text-[#333] animate-pulse" size={48} />
+                            </div>
+                        </div>
+                    </div>
+                );
+            }
+
+            // List View
+            return (
+                <div className="min-h-screen pt-32 pb-20 px-4 md:px-20 max-w-4xl mx-auto">
+                    <SectionHeader title="THE CASE FILES" subtitle="Engineering & Narrative Logs" />
+
+                    <div className="space-y-8">
+                        {DEVLOG_POSTS.map((post) => (
+                            <div
+                                key={post.id}
+                                onClick={() => navigateTo('devlog', post.id)}
+                                className="border border-[#333] bg-[#0d0d0d] p-0 hover:border-[#c5a059] transition-all duration-300 group cursor-pointer hover:transform hover:-translate-y-1 hover:shadow-[0_0_15px_rgba(197,160,89,0.1)]"
+                            >
+                                <div className="bg-[#111] p-2 border-b border-[#333] flex justify-between items-center px-4">
+                                    <div className="flex items-center gap-2">
+                                        <Terminal size={14} className="text-[#c5a059]" />
+                                        <span className="font-['Courier_Prime'] text-xs text-[#666]">{post.date} // {post.type}</span>
+                                    </div>
+                                    <div className="font-['Courier_Prime'] text-xs text-[#444]">ID: {post.id}</div>
+                                </div>
+                                <div className="p-6">
+                                    <h3 className="text-xl font-['Courier_Prime'] text-[#f4f4f4] group-hover:text-[#c5a059] transition-colors font-bold mb-2">
+                                        {post.title}
+                                    </h3>
+                                    <p className="text-[#888] font-['Courier_Prime'] text-sm line-clamp-2 mb-4">
+                                        {post.content.substring(0, 150)}...
+                                    </p>
+                                    <div className="flex items-center text-[#c5a059] text-xs font-['Cinzel'] font-bold tracking-widest opacity-0 group-hover:opacity-100 transition-opacity">
+                                        OPEN FILE <ChevronRight size={14} />
+                                    </div>
+                                </div>
+                            </div>
+                        ))}
+                    </div>
+                </div>
+            );
+        };
+
+        // --- Main App Component ---
+
+        const App = () => {
+            // Helper to parse hash: #devlog/001 -> { page: 'devlog', param: '001' }
+            const parseHash = () => {
+                const hash = window.location.hash.slice(1) || 'home';
+                const parts = hash.split('/');
+                return { page: parts[0], param: parts[1] || null };
+            };
+
+            const [route, setRoute] = useState(parseHash());
+            const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
+            const containerRef = useRef(null);
+
+            // Handle browser navigation (Back/Forward)
+            useEffect(() => {
+                const handleHashChange = () => {
+                    setRoute(parseHash());
+                };
+                window.addEventListener('hashchange', handleHashChange);
+                return () => window.removeEventListener('hashchange', handleHashChange);
+            }, []);
+
+            // Dynamic Title Update based on Active Page & Params
+            useEffect(() => {
+                const { page, param } = route;
+
+                if (page === 'devlog' && param) {
+                    const post = DEVLOG_POSTS.find(p => p.id === param);
+                    if (post) {
+                        document.title = `${post.title} | Threshold Games`;
+                        return; // Exit early if specific post title is set
+                    }
+                }
+
+                switch (page) {
+                    case 'home': document.title = "Threshold Games Studio"; break;
+                    case 'about': document.title = "The Space Between | Threshold Games"; break;
+                    case 'games': document.title = "Investigations | Threshold Games"; break;
+                    case 'game1': document.title = "Sherlock Holmes: The First Thread"; break;
+                    case 'game2': document.title = "Baker Street: Origins"; break;
+                    case 'devlog': document.title = "Case Files | Threshold Games"; break;
+                    default: document.title = "Threshold Games Studio";
+                }
+            }, [route]);
+
+            // Navigation handler
+            const navigateTo = (pageId, param = null) => {
+                if (param) {
+                    window.location.hash = `${pageId}/${param}`;
+                } else {
+                    window.location.hash = pageId;
+                }
+            };
+
+            // Flashlight Effect Logic
+            useEffect(() => {
+                const handleMouseMove = (e) => {
+                    if (containerRef.current) {
+                        const x = e.clientX;
+                        const y = e.clientY;
+                        containerRef.current.style.setProperty('--x', `${x}px`);
+                        containerRef.current.style.setProperty('--y', `${y}px`);
+                    }
+                };
+
+                window.addEventListener('mousemove', handleMouseMove);
+                return () => window.removeEventListener('mousemove', handleMouseMove);
+            }, []);
+
+            const renderPage = () => {
+                const { page, param } = route;
+                switch (page) {
+                    case 'home': return <HomePage navigateTo={navigateTo} />;
+                    case 'about': return <AboutPage />;
+                    case 'games': return <GamesListPage navigateTo={navigateTo} />;
+                    case 'game1': return <Game1Page />;
+                    case 'game2': return <Game2Page />;
+                    case 'devlog': return <DevlogPage postId={param} navigateTo={navigateTo} />;
+                    default: return <HomePage navigateTo={navigateTo} />;
+                }
+            };
+
+            return (
+                <div
+                    ref={containerRef}
+                    className="min-h-screen bg-[#0a0a0a] text-[#f4f4f4] overflow-x-hidden selection:bg-[#c5a059] selection:text-black"
+                >
+                    <div className="flashlight-layer"></div>
+
+                    <Navigation
+                        activePage={route.page}
+                        navigateTo={navigateTo}
+                        isMobileMenuOpen={isMobileMenuOpen}
+                        setIsMobileMenuOpen={setIsMobileMenuOpen}
+                    />
+
+                    <main className="relative z-10">
+                        {renderPage()}
+                    </main>
+
+                    <footer className="bg-[#050505] border-t border-[#222] py-8 text-center relative z-10">
+                        <p className="font-['Courier_Prime'] text-xs text-[#666]">
+                            &copy; 1890-2025 THRESHOLD GAMES. LONDON.
+                        </p>
+                    </footer>
+                </div>
+            );
+        };
+
+        const root = ReactDOM.createRoot(document.getElementById('root'));
+        root.render(<App />);
+    </script>
+</body>
+
+</html>

@@ -1,0 +1,258 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Case Files | Threshold Games</title>
+
+    <!-- Fonts -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Cinzel:wght@400;700&family=Courier+Prime:wght@400;700&display=swap" rel="stylesheet">
+
+    <!-- Tailwind CSS -->
+    <script src="https://cdn.tailwindcss.com"></script>
+
+    <style>
+        /* Custom Animations & Effects */
+        @keyframes fadeInUp {
+            from {
+                opacity: 0;
+                transform: translateY(20px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        .animate-fade-in-up {
+            animation: fadeInUp 0.8s ease-out forwards;
+        }
+
+        .animate-fade-in {
+            animation: fadeIn 1s ease-out forwards;
+        }
+
+        .animate-fade-in-delay {
+            animation: fadeIn 1s ease-out 0.5s forwards;
+            opacity: 0;
+        }
+
+        .animate-fade-in-delay-2 {
+            animation: fadeIn 1s ease-out 1s forwards;
+            opacity: 0;
+        }
+
+        @keyframes fadeIn {
+            from {
+                opacity: 0;
+            }
+            to {
+                opacity: 1;
+            }
+        }
+
+        /* The Flashlight Texture Layer */
+        .flashlight-layer {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            pointer-events: none;
+            z-index: 1;
+            background-image:
+                radial-gradient(#333 1px, transparent 1px),
+                radial-gradient(#222 1px, transparent 1px);
+            background-size: 20px 20px;
+            background-position: 0 0, 10px 10px;
+            mask-image: radial-gradient(circle 250px at var(--x, 50%) var(--y, 50%), black 0%, transparent 100%);
+            -webkit-mask-image: radial-gradient(circle 250px at var(--x, 50%) var(--y, 50%), black 0%, transparent 100%);
+            opacity: 0.15;
+        }
+
+        /* Scrollbar Styling */
+        ::-webkit-scrollbar {
+            width: 8px;
+        }
+
+        ::-webkit-scrollbar-track {
+            background: #0a0a0a;
+        }
+
+        ::-webkit-scrollbar-thumb {
+            background: #333;
+        }
+
+        ::-webkit-scrollbar-thumb:hover {
+            background: #c5a059;
+        }
+
+        body {
+            background-color: #0a0a0a;
+            color: #f4f4f4;
+        }
+    </style>
+</head>
+
+<body class="min-h-screen selection:bg-[#c5a059] selection:text-black overflow-x-hidden">
+    <div class="flashlight-layer" id="flash"></div>
+
+    <nav class="fixed top-0 w-full z-50 border-b border-[#333] bg-[#0a0a0a]/90 backdrop-blur-sm">
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+            <div class="flex items-center justify-between h-20">
+                <div class="flex-shrink-0 cursor-pointer group" onclick="location.href='/'">
+                    <div class="text-2xl font-['Cinzel'] text-[#f4f4f4] tracking-widest group-hover:text-[#c5a059] transition-colors">THRESHOLD</div>
+                    <div class="text-[10px] font-['Courier_Prime'] text-[#c5a059] tracking-[0.3em]">GAMES STUDIO</div>
+                </div>
+
+                <div class="hidden md:block">
+                    <div class="ml-10 flex items-baseline space-x-8">
+                        <a href="/" class="px-3 py-2 text-sm font-['Courier_Prime'] tracking-wider transition-all duration-300 text-[#f4f4f4] hover:text-[#c5a059] hover:opacity-80">LOBBY</a>
+                        <a href="/about/" class="px-3 py-2 text-sm font-['Courier_Prime'] tracking-wider transition-all duration-300 text-[#f4f4f4] hover:text-[#c5a059] hover:opacity-80">THE SPACE BETWEEN</a>
+                        <a href="/games/" class="px-3 py-2 text-sm font-['Courier_Prime'] tracking-wider transition-all duration-300 text-[#f4f4f4] hover:text-[#c5a059] hover:opacity-80">INVESTIGATIONS</a>
+                        <a href="/devlog/" class="px-3 py-2 text-sm font-['Courier_Prime'] tracking-wider transition-all duration-300 text-[#f4f4f4] hover:text-[#c5a059] hover:opacity-80">CASE FILES</a>
+                    </div>
+                </div>
+
+                <div class="-mr-2 flex md:hidden">
+                    <button id="menu-btn" class="inline-flex items-center justify-center p-2 rounded-md text-gray-400 hover:text-white hover:bg-gray-700 focus:outline-none">
+                        <svg id="menu-icon" xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="color: #c5a059;">
+                            <line x1="3" y1="12" x2="21" y2="12"></line>
+                            <line x1="3" y1="6" x2="21" y2="6"></line>
+                            <line x1="3" y1="18" x2="21" y2="18"></line>
+                        </svg>
+                    </button>
+                </div>
+            </div>
+        </div>
+
+        <!-- Mobile Menu -->
+        <div id="mobile-menu" class="hidden md:hidden bg-[#0a0a0a] border-b border-[#333]">
+            <div class="px-2 pt-2 pb-3 space-y-1 sm:px-3">
+                <a href="/" class="text-gray-300 hover:text-[#c5a059] block px-3 py-2 rounded-md text-base font-medium font-['Courier_Prime'] w-full text-left">LOBBY</a>
+                <a href="/about/" class="text-gray-300 hover:text-[#c5a059] block px-3 py-2 rounded-md text-base font-medium font-['Courier_Prime'] w-full text-left">THE SPACE BETWEEN</a>
+                <a href="/games/" class="text-gray-300 hover:text-[#c5a059] block px-3 py-2 rounded-md text-base font-medium font-['Courier_Prime'] w-full text-left">INVESTIGATIONS</a>
+                <a href="/devlog/" class="text-gray-300 hover:text-[#c5a059] block px-3 py-2 rounded-md text-base font-medium font-['Courier_Prime'] w-full text-left">CASE FILES</a>
+            </div>
+        </div>
+    </nav>
+
+    <main class="relative z-10">
+        
+<div class="min-h-screen pt-32 pb-20 px-4 md:px-20 max-w-4xl mx-auto">
+  <div class="mb-12 border-l-4 border-[#c5a059] pl-6 py-2 animate-fade-in-up">
+    <h1 class="text-4xl md:text-6xl font-['Cinzel'] text-[#f4f4f4] mb-2">THE CASE FILES</h1>
+    <p class="text-[#c5a059] font-['Courier_Prime'] tracking-widest uppercase text-sm md:text-base">Engineering & Narrative Logs</p>
+  </div>
+
+  <div class="space-y-8">
+    
+      <a href="/devlog/003/" class="border border-[#333] bg-[#0d0d0d] p-0 hover:border-[#c5a059] transition-all duration-300 group cursor-pointer hover:transform hover:-translate-y-1 hover:shadow-[0_0_15px_rgba(197,160,89,0.1)] block">
+        <div class="bg-[#111] p-2 border-b border-[#333] flex justify-between items-center px-4">
+          <div class="flex items-center gap-2">
+            <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="text-[#c5a059]">
+              <polyline points="4 17 10 11 4 5"></polyline>
+              <line x1="12" y1="19" x2="20" y2="19"></line>
+            </svg>
+            <span class="font-['Courier_Prime'] text-xs text-[#666]">1874-12-01 // HR_DEPT</span>
+          </div>
+          <div class="font-['Courier_Prime'] text-xs text-[#444]">ID: 003</div>
+        </div>
+        <div class="p-6">
+          <h3 class="text-xl font-['Courier_Prime'] text-[#f4f4f4] group-hover:text-[#c5a059] transition-colors font-bold mb-2">
+            Interrogation Room: Lead Animator
+          </h3>
+          <p class="text-[#888] font-['Courier_Prime'] text-sm line-clamp-2 mb-4">
+            
+          </p>
+          <div class="flex items-center text-[#c5a059] text-xs font-['Cinzel'] font-bold tracking-widest opacity-0 group-hover:opacity-100 transition-opacity">
+            OPEN FILE
+            <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+              <polyline points="9 18 15 12 9 6"></polyline>
+            </svg>
+          </div>
+        </div>
+      </a>
+    
+      <a href="/devlog/002/" class="border border-[#333] bg-[#0d0d0d] p-0 hover:border-[#c5a059] transition-all duration-300 group cursor-pointer hover:transform hover:-translate-y-1 hover:shadow-[0_0_15px_rgba(197,160,89,0.1)] block">
+        <div class="bg-[#111] p-2 border-b border-[#333] flex justify-between items-center px-4">
+          <div class="flex items-center gap-2">
+            <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="text-[#c5a059]">
+              <polyline points="4 17 10 11 4 5"></polyline>
+              <line x1="12" y1="19" x2="20" y2="19"></line>
+            </svg>
+            <span class="font-['Courier_Prime'] text-xs text-[#666]">1874-11-15 // PHYSICS</span>
+          </div>
+          <div class="font-['Courier_Prime'] text-xs text-[#444]">ID: 002</div>
+        </div>
+        <div class="p-6">
+          <h3 class="text-xl font-['Courier_Prime'] text-[#f4f4f4] group-hover:text-[#c5a059] transition-colors font-bold mb-2">
+            Case Note #012: Ragdoll Physics
+          </h3>
+          <p class="text-[#888] font-['Courier_Prime'] text-sm line-clamp-2 mb-4">
+            
+          </p>
+          <div class="flex items-center text-[#c5a059] text-xs font-['Cinzel'] font-bold tracking-widest opacity-0 group-hover:opacity-100 transition-opacity">
+            OPEN FILE
+            <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+              <polyline points="9 18 15 12 9 6"></polyline>
+            </svg>
+          </div>
+        </div>
+      </a>
+    
+      <a href="/devlog/001/" class="border border-[#333] bg-[#0d0d0d] p-0 hover:border-[#c5a059] transition-all duration-300 group cursor-pointer hover:transform hover:-translate-y-1 hover:shadow-[0_0_15px_rgba(197,160,89,0.1)] block">
+        <div class="bg-[#111] p-2 border-b border-[#333] flex justify-between items-center px-4">
+          <div class="flex items-center gap-2">
+            <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="text-[#c5a059]">
+              <polyline points="4 17 10 11 4 5"></polyline>
+              <line x1="12" y1="19" x2="20" y2="19"></line>
+            </svg>
+            <span class="font-['Courier_Prime'] text-xs text-[#666]">1874-11-02 // AUDIO_ENG</span>
+          </div>
+          <div class="font-['Courier_Prime'] text-xs text-[#444]">ID: 001</div>
+        </div>
+        <div class="p-6">
+          <h3 class="text-xl font-['Courier_Prime'] text-[#f4f4f4] group-hover:text-[#c5a059] transition-colors font-bold mb-2">
+            Evidence Log #004: London Rain
+          </h3>
+          <p class="text-[#888] font-['Courier_Prime'] text-sm line-clamp-2 mb-4">
+            
+          </p>
+          <div class="flex items-center text-[#c5a059] text-xs font-['Cinzel'] font-bold tracking-widest opacity-0 group-hover:opacity-100 transition-opacity">
+            OPEN FILE
+            <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+              <polyline points="9 18 15 12 9 6"></polyline>
+            </svg>
+          </div>
+        </div>
+      </a>
+    
+  </div>
+</div>
+
+    </main>
+
+    <footer class="bg-[#050505] border-t border-[#222] py-8 text-center relative z-10">
+        <p class="font-['Courier_Prime'] text-xs text-[#666]">&copy; 1890-2025 THRESHOLD GAMES. LONDON.</p>
+    </footer>
+
+    <script>
+        // Flashlight cursor coords for subtle mask effect
+        const flash = document.getElementById('flash');
+        window.addEventListener('mousemove', (e) => {
+            flash.style.setProperty('--x', e.clientX + 'px');
+            flash.style.setProperty('--y', e.clientY + 'px');
+        });
+
+        // Mobile menu toggle
+        const menuBtn = document.getElementById('menu-btn');
+        const mobileMenu = document.getElementById('mobile-menu');
+        menuBtn.addEventListener('click', () => {
+            mobileMenu.classList.toggle('hidden');
+        });
+    </script>
+</body>
+</html>

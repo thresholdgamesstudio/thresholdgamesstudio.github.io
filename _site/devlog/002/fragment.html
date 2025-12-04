@@ -1,0 +1,15 @@
+
+<div class="p-6">
+  <h3 class="font-['Cinzel'] text-xl text-[#c5a059] mb-4">Case Note #012: Ragdoll Physics</h3>
+  <div class="font-['Courier_Prime'] text-[#f4f4f4] leading-relaxed whitespace-pre-wrap text-sm md:text-base"><p>SUBJECT: Rigor Mortis Implementation
+PRIORITY: High</p>
+<p>Standard ragdoll physics feel too loose for our requirements. Bodies in 'Threshold' cannot flop like empty sacks; they must carry the weight of the dead.</p>
+<p>We are implementing a localized stiffness system. When an enemy is neutralized:</p>
+<ol>
+<li>Joints lock progressively based on the time of death.</li>
+<li>Impact force is preserved, allowing for 'knockback' that feels heavy and brutal.</li>
+<li>We encountered a bug where the physics engine calculated infinite mass for the bowler hats. This has been rectified, though the 'Lethal Hat' mechanic is being considered for a spin-off.</li>
+</ol>
+</div>
+  <div class="mt-6 text-xs text-[#666]">Logged by: <span class="text-[#c5a059]">Lead Dev A. Vance</span></div>
+</div>
